@@ -7,7 +7,7 @@ use ipipe::Pipe;
 const CANCEL: u8 = 24;
 
 fn main() {
-    let mut pipe = Pipe::create().unwrap();
+    let pipe = Pipe::create().unwrap();
     println!("Name: {}", pipe.path().display());
 
     let writer = pipe.clone();
