@@ -20,11 +20,29 @@ jobs:
       - name: Rust Cache
         uses: Swatinem/rust-cache@v1
 
-      - name: Code Coverage
-        env:
-          GITHUB_PULL_REQUEST: ${{ github.event.pull_request.number }}
-        run: |
-          export GITHUB_PULL_REQUEST=${{ env.GITHUB_PULL_REQUEST }}
-          export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          export PROJECT_TITLE="Ipipe playround built on ${{ matrix.os }}"
-          cd ipipe_playround && bash <(curl -s https://raw.githubusercontent.com/duyet/cov-rs/master/cov.sh)
+      # - name: Code Coverage
+      #   env:
+      #     GITHUB_PULL_REQUEST: ${{ github.event.pull_request.number }}
+      #   run: |
+      #     export GITHUB_PULL_REQUEST=${{ env.GITHUB_PULL_REQUEST }}
+      #     export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+      #     export PROJECT_TITLE="Ipipe playround built on ${{ matrix.os }}"
+      #     cd ipipe_playround && bash <(curl -s https://raw.githubusercontent.com/duyet/cov-rs/master/cov.sh)
+  coverage:
+    runs-on: ubuntu-latest
+    env:
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Rust
+        run: rustup toolchain install stable --component llvm-tools-preview
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+      - name: Generate code coverage
+        run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
+          files: lcov.info
+          fail_ci_if_error: true
